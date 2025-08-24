@@ -28,7 +28,7 @@ SELECT DISTINCT route_id, route_short_name, route_long_name, route_type
 FROM staging.routes
 ON CONFLICT (route_id) DO NOTHING;
 """)
-# Corrected date_dim code
+
 engine.execute("""
 CREATE TABLE IF NOT EXISTS data_warehouse.date_dim (
     date_id DATE PRIMARY KEY,
