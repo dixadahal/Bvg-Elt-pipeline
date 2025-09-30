@@ -13,11 +13,15 @@ The goal is to ingest, process, and analyse public transport data efficiently an
    ```bash
    git clone https://github.com/<username>/bvg-elt.git
    cd bvg-elt
-2. Copy the environment file and set your values:
-   copy .env.example .env
-3.Open .env in a text editor and check values (Postgres, Airflow keys, Metabase).
-4.Start the containers:
-   docker compose up -d
+ 
+2. **Copy the environment file and set your values:**
+      copy .env.example .env
+
+3. **Open `.env` in a text editor** and check values (Postgres, Airflow keys, Metabase).
+
+4. **Start the containers:**
+
+
 
 
 ## **Access Services**
@@ -59,16 +63,19 @@ Airflow DAGs orchestrate the pipeline:
 Users can query PostgreSQL or build dashboards in Metabase/Grafana.
 
 ## **Repository Layout**
+```
 bvg-elt/
-├── dags/ # Airflow DAGs
-├── data_lake/ # Landing, staging, warehouse data folders
-├── logs/ # Airflow logs
-├── metabase-data/ # Metabase database file
-├── tests/ # Test scripts
+├── dags/                # Airflow DAGs
+├── data_lake/           # Landing, staging, warehouse data folders
+├── logs/                # Airflow logs
+├── metabase-data/       # Metabase database file
+├── tests/               # Test scripts
 ├── docker-compose.yml
 ├── .env.example
 ├── .env
 └── README.md
+```
+
 
 ## **ELT Flow Diagram**
 ```mermaid
