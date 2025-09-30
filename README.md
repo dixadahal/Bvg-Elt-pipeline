@@ -4,9 +4,9 @@
 This project builds an ELT pipeline for BVG (Berlin Public Transport) GTFS data using Docker, PostgreSQL, and Apache Airflow.
 The goal is to ingest, process, and analyse public transport data efficiently and make it available for dashboards and reporting.
 ## **Setup**
-Prerequisites:
--Docker & Docker Compose installed
--Git installed
+### Prerequisites:
+- Docker & Docker Compose installed
+- Git installed
 
 ## **Steps**:
 1.Clone the repository:
