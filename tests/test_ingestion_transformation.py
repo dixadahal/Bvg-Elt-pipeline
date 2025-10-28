@@ -6,7 +6,7 @@ DB_CONFIG = {
     "dbname": "airflow",
     "user": "airflow",
     "password": "airflow",
-    "host": "localhost", 
+    "host": "localhost",
     "port": "5432",
 }
 
