@@ -1,4 +1,5 @@
 ﻿name: CI
+
 on:
   push:
   pull_request:
@@ -23,12 +24,12 @@ jobs:
           --health-retries 10
 
     env:
-      DATABASE_URL: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      DATABASE_URL: postgresql+psycopg2://airflow:airflow@127.0.0.1:5432/airflow
       AIRFLOW__CORE__UNIT_TEST_MODE: "True"
       AIRFLOW_HOME: /home/runner/work/airflow
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
@@ -57,13 +58,13 @@ jobs:
         run: |
           echo "Waiting for Postgres to be ready..."
           for i in {1..30}; do
-            pg_isready -h postgres -p 5432 -U airflow && break
+            pg_isready -h 127.0.0.1 -p 5432 -U airflow && break
             echo "Still waiting for Postgres..."
             sleep 2
           done
           echo "Postgres is up!"
           # Verify connection
-          PGPASSWORD=airflow psql -h postgres -U airflow -d airflow -c "SELECT 1;" || (echo "Postgres check failed" && exit 1)
+          PGPASSWORD=airflow psql -h 127.0.0.1 -U airflow -d airflow -c "SELECT 1;" || (echo "Postgres check failed" && exit 1)
 
       - name: Run tests
         run: |
