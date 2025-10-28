@@ -84,4 +84,19 @@ flowchart LR
     B --> C[Data Warehouse<br/>Analytics Schema]
     C --> D[Dashboards & Reports<br/>Metabase/Grafana]
 
+## **Data Quality & Monitoring**
+
+- Row count, duplicate, and null checks  
+- Retry logic for ingestion tasks  
+- Airflow task failure alerts (email configuration optional)  
+- Data validation DAG: data_quality_dag.py  
+
+## **Deliverables**
+
+- Working ELT pipeline with Airflow & PostgreSQL  
+- Automated ingestion and transformation DAGs  
+- Configurable .env and docker-compose.yml  
+- Dashboards in Metabase  
+ 
+
 
