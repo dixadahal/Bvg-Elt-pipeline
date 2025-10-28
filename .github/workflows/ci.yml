@@ -20,7 +20,7 @@ jobs:
           --health-cmd "pg_isready -U airflow -d airflow"
           --health-interval 10s
           --health-timeout 5s
-          --health-retries 5
+          --health-retries 10
 
     env:
       DATABASE_URL: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
@@ -39,7 +39,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libpq-dev
+          sudo apt-get install -y libpq-dev postgresql-client
 
       - name: Install Python dependencies
         run: |
@@ -53,13 +53,17 @@ jobs:
           black --check dags tests
           flake8 dags --max-line-length=120
 
-      - name: Wait for Postgres
+      - name: Wait for Postgres to be ready
         run: |
+          echo "Waiting for Postgres to be ready..."
           for i in {1..30}; do
             pg_isready -h postgres -p 5432 -U airflow && break
-            echo "Waiting for Postgres..."
+            echo "Still waiting for Postgres..."
             sleep 2
           done
+          echo "Postgres is up!"
+          # Verify connection
+          PGPASSWORD=airflow psql -h postgres -U airflow -d airflow -c "SELECT 1;" || (echo "Postgres check failed" && exit 1)
 
       - name: Run tests
         run: |
