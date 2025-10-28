@@ -23,7 +23,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql+psycopg2://airflow:airflow@localhost:5432/airflow
+      DATABASE_URL: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
       AIRFLOW__CORE__UNIT_TEST_MODE: "True"
       AIRFLOW_HOME: /home/runner/work/airflow
 
@@ -56,7 +56,8 @@ jobs:
       - name: Wait for Postgres
         run: |
           for i in {1..30}; do
-            pg_isready -h localhost -p 5432 -U airflow && break
+            pg_isready -h postgres -p 5432 -U airflow && break
+            echo "Waiting for Postgres..."
             sleep 2
           done
 
