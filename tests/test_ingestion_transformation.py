@@ -6,7 +6,7 @@ DB_CONFIG = {
     "dbname": "airflow",
     "user": "airflow",
     "password": "airflow",
-    "host": "postgres",  # Use 'postgres' if running in Docker
+    "host": "localhost", 
     "port": "5432",
 }
 
