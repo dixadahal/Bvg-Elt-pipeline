@@ -33,9 +33,9 @@ def data_quality_check():
         # Duplicates
         cur.execute(
             f"""
-            SELECT {key_col}, COUNT(*) 
-            FROM {table} 
-            GROUP BY {key_col} 
+            SELECT {key_col}, COUNT(*)
+            FROM {table}
+            GROUP BY {key_col}
             HAVING COUNT(*) > 1;
         """
         )
