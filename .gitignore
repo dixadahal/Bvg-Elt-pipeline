@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+logs/
+data_lake/
+metabase-data/
+metabase-data-old/
+.env

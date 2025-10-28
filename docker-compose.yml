@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.9'
 
 services:
   postgres:
@@ -11,27 +11,69 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./data_lake:/data_lake
 
   airflow:
     image: apache/airflow:2.6.3
     depends_on:
       - postgres
+    env_file: .env 
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
       AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__EMAIL__EMAIL_CONN_ID: smtp_default
+
     ports:
       - "8080:8080"
     volumes:
       - ./dags:/opt/airflow/dags
-      - ./data_lake:/data_lake   # <--- NEW LINE (mount your data lake folder)
+      - ./tests:/opt/airflow/tests
+      - ./data_lake:/data_lake
+      - ./logs:/opt/airflow/logs
     command: >
       bash -c "
-      airflow db init &&
-      airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com &&
-      airflow scheduler & 
-      airflow webserver
+        while ! pg_isready -h postgres -p 5432 -U airflow; do
+          echo 'Waiting for Postgres...';
+          sleep 3;
+        done;
+        airflow db init &&
+        airflow users create --username admin --password admin123 --firstname Admin --lastname User --role Admin --email admin@example.com || true;
+        airflow scheduler &
+        exec airflow webserver
       "
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    ports:
+      - "3000:3000"
+    environment:
+      - MB_DB_FILE=/metabase-data/metabase.db
+    volumes:
+      - ./metabase-data:/metabase-data
+    restart: unless-stopped
+
+  postgres-backup:
+    image: postgres:13
+    depends_on:
+      - postgres
+    environment:
+      PGPASSWORD: airflow
+    volumes:
+      - ./data_lake/backups:/backup
+    entrypoint: >
+      sh -c "pg_dump -h postgres -U airflow -d airflow > /backup/airflow_backup_$(date +%F_%H-%M-%S).sql"
+
+  metabase-backup:
+    image: alpine
+    depends_on:
+      - metabase
+    volumes:
+      - ./metabase-data:/metabase-data
+      - ./data_lake/backups:/backup
+    entrypoint: >
+      sh -c "cp -r /metabase-data /backup/metabase_backup_$(date +%F_%H-%M-%S)"
 
 volumes:
   postgres_data:
