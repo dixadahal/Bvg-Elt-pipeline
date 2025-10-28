@@ -10,15 +10,18 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
 }
 
+
 def run_data_quality_checks():
     """Run simple SQL data quality checks directly in Airflow."""
-    engine = create_engine("postgresql+psycopg2://airflow:airflow@postgres:5432/airflow")
+    engine = create_engine(
+        "postgresql+psycopg2://airflow:airflow@postgres:5432/airflow"
+    )
 
     checks = {
         "row_count_check": "SELECT COUNT(*) FROM warehouse.ridership_fact;",
         "null_station_check": "SELECT COUNT(*) FROM warehouse.ridership_fact WHERE station_id IS NULL;",
         "null_route_check": "SELECT COUNT(*) FROM warehouse.ridership_fact WHERE route_id IS NULL;",
-        "null_date_check": "SELECT COUNT(*) FROM warehouse.ridership_fact WHERE date_id IS NULL;"
+        "null_date_check": "SELECT COUNT(*) FROM warehouse.ridership_fact WHERE date_id IS NULL;",
     }
 
     for name, query in checks.items():
@@ -28,8 +31,9 @@ def run_data_quality_checks():
             raise ValueError("❌ Data quality failed: ridership_fact is empty.")
         elif "null_" in name and result > 0:
             raise ValueError(f"❌ Data quality failed: {result} NULL values in {name}.")
-    
+
     logging.info("✅ All data quality checks passed successfully!")
+
 
 with DAG(
     dag_id="data_quality_dag",

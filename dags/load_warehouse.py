@@ -3,7 +3,8 @@ from sqlalchemy import create_engine
 engine = create_engine("postgresql+psycopg2://airflow:airflow@postgres:5432/airflow")
 
 # Create station_dim and load data from staging.stops
-engine.execute("""
+engine.execute(
+    """
 CREATE TABLE IF NOT EXISTS warehouse.station_dim (
     station_id TEXT PRIMARY KEY,
     stop_name TEXT,
@@ -14,10 +15,12 @@ INSERT INTO warehouse.station_dim (station_id, stop_name, stop_lat, stop_lon)
 SELECT DISTINCT stop_id, stop_name, stop_lat, stop_lon
 FROM staging.stops
 ON CONFLICT (station_id) DO NOTHING;
-""")
+"""
+)
 
 # Create route_dim and load data from staging.routes
-engine.execute("""
+engine.execute(
+    """
 CREATE TABLE IF NOT EXISTS warehouse.route_dim (
     route_id TEXT PRIMARY KEY,
     route_short_name TEXT,
@@ -28,10 +31,12 @@ INSERT INTO warehouse.route_dim (route_id, route_short_name, route_long_name, ro
 SELECT DISTINCT route_id, route_short_name, route_long_name, route_type
 FROM staging.routes
 ON CONFLICT (route_id) DO NOTHING;
-""")
+"""
+)
 
 # Create date_dim and load data from staging.calendar_dates
-engine.execute("""
+engine.execute(
+    """
 CREATE TABLE IF NOT EXISTS warehouse.date_dim (
     date_id DATE PRIMARY KEY,
     year INT,
@@ -47,10 +52,12 @@ SELECT TO_DATE(date::TEXT, 'YYYYMMDD') AS date_id,
        EXTRACT(DOW FROM TO_DATE(date::TEXT, 'YYYYMMDD'))
 FROM staging.calendar_dates
 ON CONFLICT (date_id) DO NOTHING;
-""")
+"""
+)
 
 # Create ridership_fact and populate it
-engine.execute("""
+engine.execute(
+    """
 CREATE TABLE IF NOT EXISTS warehouse.ridership_fact (
     fact_id SERIAL PRIMARY KEY,
     date_id DATE REFERENCES warehouse.date_dim(date_id),
@@ -72,4 +79,5 @@ JOIN staging.stop_times stt ON t.trip_id = stt.trip_id
 JOIN staging.stops st ON stt.stop_id = st.stop_id
 JOIN staging.routes r ON t.route_id = r.route_id
 JOIN staging.calendar_dates cd ON cd.service_id = t.service_id;
-""")
+"""
+)
