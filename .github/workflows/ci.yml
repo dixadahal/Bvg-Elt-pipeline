@@ -1,0 +1,84 @@
+﻿name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: airflow
+          POSTGRES_PASSWORD: airflow
+          POSTGRES_DB: airflow
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U airflow -d airflow"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+psycopg2://airflow:airflow@localhost:5432/airflow
+      AIRFLOW__CORE__UNIT_TEST_MODE: "True"
+      AIRFLOW_HOME: /home/runner/work/airflow
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install "apache-airflow==2.6.3" --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.6.3/constraints-3.10.txt"
+          pip install pandas sqlalchemy psycopg2-binary pytest
+          pip install black flake8
+
+      - name: Lint (Black + Flake8)
+        run: |
+          black --check dags tests
+          flake8 dags --max-line-length=120
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U airflow && break
+            sleep 2
+          done
+
+      - name: Run tests
+        run: |
+          pytest -q
+
+      - name: Parse DAGs (import check)
+        run: |
+          python - <<'PY'
+          import os, glob, importlib.util, sys
+          os.environ.setdefault("AIRFLOW__CORE__UNIT_TEST_MODE", "True")
+          failed = False
+          for path in glob.glob("dags/*.py"):
+              name = os.path.splitext(os.path.basename(path))[0]
+              spec = importlib.util.spec_from_file_location(name, path)
+              mod = importlib.util.module_from_spec(spec)
+              try:
+                  spec.loader.exec_module(mod)
+                  print(f"OK: {path}")
+              except Exception as e:
+                  print(f"FAIL: {path} -> {e}")
+                  failed = True
+          sys.exit(1 if failed else 0)
+          PY
